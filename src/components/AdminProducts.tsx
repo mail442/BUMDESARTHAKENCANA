@@ -1,4 +1,17 @@
-import { useState, useEffect } from 'react';
+[17.15, 27/6/2026] ISMAIL: {/* Modal Konfirmasi Hapus */}
+      {isDeleting && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-red-100"
+          >
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+               <Trash2 size={32} />
+            </div>
+            <h3 className="text-xl font-black text-natural-header text-center mb-2">Hapus Produk?</h3>
+            <p className="text-sm text-gray-500 text-center mb-8">Tindakan ini tidak dapat …
+[17.16, 27/6/2026] ISMAIL: import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Tag, Database, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
@@ -10,7 +23,15 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({ nama: '', price: 0, stock: 0, unit: 'kg' as 'kg' | 'butir', category: '', description: '', imageUrl: '', isPromo: false });
+  const [formData, setFormData] = useState({ nama: '', price: 0, stock: 0, unit: …
+[17.33, 27/6/2026] ISMAIL: import { useState, useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { collection, query, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+import { Product } from '../types';
+
+export default function AdminProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,20 +39,22 @@ export default function AdminProducts() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const productsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Product));
       setProducts(productsData);
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  const handleDelete = (id: string) => setIsDeleting(id);
-
   const confirmDelete = async (id: string) => {
     try {
+      console.log("Mencoba menghapus ID:", id);
       await deleteDoc(doc(db, 'products', id));
+      alert("Produk berhasil dihapus!");
       setIsDeleting(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gagal menghapus:", error);
+      // Menampilkan pesan error langsung ke layar agar Anda tahu penyebab macetnya
+      alert("Gagal menghapus: " + (error.message || "Izin ditolak (Permission Denied)"));
       handleFirestoreError(error, OperationType.DELETE, products/${id});
+      setIsDeleting(null);
     }
   };
 
@@ -42,11 +65,9 @@ export default function AdminProducts() {
             <div key={product.id} className="bg-white p-4 rounded-xl border shadow-sm">
                <h3 className="font-bold">{product.nama}</h3>
                <p>Rp {product.price.toLocaleString('id-ID')}</p>
-               <div className="flex gap-2 mt-4">
-                  <button onClick={() => handleDelete(product.id)} className="text-red-500 bg-red-50 p-2 rounded">
-                     <Trash2 size={16} />
-                  </button>
-               </div>
+               <button onClick={() => setIsDeleting(product.id)} className="text-red-500 bg-red-50 p-2 rounded mt-4">
+                  <Trash2 size={16} />
+               </button>
             </div>
          ))}
       </div>
